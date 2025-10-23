@@ -1,5 +1,6 @@
 from fastapi import (
     APIRouter, 
+    Depends,
     File, 
     UploadFile, 
     status, 
@@ -8,6 +9,7 @@ from fastapi import (
 from app.rate_limiting import limiter
 from app.scanner.controller import scan_file
 from app.scanner.schema import ScannerResponse
+from app.utils import get_api_key
 
 router = APIRouter(prefix="/scanner", tags=["Scanner"])
 
@@ -17,5 +19,6 @@ router = APIRouter(prefix="/scanner", tags=["Scanner"])
 async def scan_file_view(
     request: Request, 
     file: UploadFile = File(...),
+    api_key: str = Depends(get_api_key)
 ):
     return await scan_file(file)
