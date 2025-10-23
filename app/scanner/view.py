@@ -40,12 +40,16 @@ async def scan_file(
             logging.info(f"File scanned. VT Analysis ID: {vt_file.id}, Status: {vt_file.status}")
 
         analysis = await client.get_object_async(f"/analyses/{vt_file.id}")
+        safe = analysis.stats.get("malicious", 0) == 0
+        category = "safe" if safe else "malicious"
+        logging.info(f"Scan complete. File categorized as: {category}")
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
                 "filename": file.filename, 
                 "scan_status": analysis.status,
+                "category": category,
                 "malicious_count": analysis.stats.get("malicious"),
                 "harmless_count": analysis.stats.get("harmless"),
                 "suspicious_count": analysis.stats.get("suspicious"),
