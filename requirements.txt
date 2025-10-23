@@ -5,3 +5,4 @@ requests
 vt-py
 python-multipart
 slowapi
+pydantic
