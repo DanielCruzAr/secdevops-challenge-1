@@ -1,8 +1,9 @@
 from fastapi import APIRouter, File, UploadFile, status, Request, HTTPException
 from fastapi.responses import JSONResponse
-import logging
 from app.config.vt_client import client
 from dotenv import load_dotenv
+from app.rate_limiting import limiter
+import logging
 import os
 
 load_dotenv()
@@ -14,6 +15,7 @@ router = APIRouter(prefix="/scanner", tags=["Scanner"])
 
 
 @router.post("/", status_code=status.HTTP_200_OK)
+@limiter.limit("4/minute")
 async def scan_file(
     request: Request, 
     file: UploadFile = File(...),
@@ -32,6 +34,7 @@ async def scan_file(
             logging.info(f"File saved to {filepath}")
 
         # Scan the file using VT client
+        logging.info("Beginning VirusTotal scan...")
         with open(filepath, "rb") as f:
             vt_file = await client.scan_file_async(f, wait_for_completion=True)
             logging.info(f"File scanned. VT Analysis ID: {vt_file.id}, Status: {vt_file.status}")
