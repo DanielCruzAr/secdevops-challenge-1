@@ -63,7 +63,7 @@ Notes:
 # Instructions
 
 ## Docker instructions
-To run the project in your localhost run the command `docker compose up -d` to run the container in detatch mode.
+To run the project in your localhost run the command `docker compose up -d` to run the container in detach mode.
 After the container is up and running go to http://localhost:8000/docs# to test the POST endpoint. You will need to add a x-api-key to the request header with value supersecretapikey123. The enpoint also needs a file input in the request body.
 
 If the file is considered "safe" by the VirusTotal scanner it will be uploaded to a S3 bucket. The url to the bucket's object will appear in the response body.
