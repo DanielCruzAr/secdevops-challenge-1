@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 
 class ScannerResponse(BaseModel):
@@ -9,4 +10,4 @@ class ScannerResponse(BaseModel):
     harmless_count: int
     suspicious_count: int
     undetected_count: int
-    link: str
+    link: Optional[str] = None

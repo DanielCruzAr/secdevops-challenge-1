@@ -1,5 +1,6 @@
 from fastapi import File, UploadFile, HTTPException
 from app.config.vt_client import client
+from app.config.boto3_client import s3_client
 from dotenv import load_dotenv
 from .schema import ScannerResponse
 import logging
@@ -8,6 +9,8 @@ import os
 load_dotenv()
 
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
+S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "my-default-bucket")
+AWS_REGION = os.getenv("AWS_REGION", "us-east-2")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
@@ -36,6 +39,14 @@ async def scan_file(file: UploadFile = File(...)) -> ScannerResponse:
         category = "safe" if safe else "malicious"
         logging.info(f"Scan complete. File categorized as: {category}")
 
+        object_url = None
+        if safe:
+            # Upload to S3 if the file is safe
+            s3_key = f"safe_files/{file.filename}"
+            s3_client.upload_file(filepath, S3_BUCKET_NAME, s3_key)
+            object_url = f"https://{S3_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{s3_key}"
+            logging.info(f"Safe file uploaded to S3 bucket '{S3_BUCKET_NAME}' with key '{s3_key}'")
+
         return ScannerResponse(
             file_name=file.filename,
             scan_status=vt_file.status,
@@ -44,7 +55,7 @@ async def scan_file(file: UploadFile = File(...)) -> ScannerResponse:
             harmless_count=analysis.stats.get("harmless", 0),
             suspicious_count=analysis.stats.get("suspicious", 0),
             undetected_count=analysis.stats.get("undetected", 0),
-            link=f"https://www.virustotal.com/gui/file/{vt_file.id}/detection"
+            link=object_url
         )
     except Exception as e:
         logging.error(f"Error scanning file: {e}")

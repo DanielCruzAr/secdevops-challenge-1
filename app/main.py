@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from app.scanner import view
 from .logging import configure_logging, LogLevels
 from app.config.vt_client import client
+from app.config.boto3_client import s3_client
+import logging
 
 
 configure_logging(LogLevels.info)
@@ -15,4 +17,5 @@ async def shutdown_event():
     Cleanup VT client on application shutdown.
     """
     await client.close_async()
-    
+    s3_client.close()
+    logging.info("Shutdown complete.")
